@@ -1,0 +1,194 @@
+id: word-content-controls-insert-and-change-content-controls
+name: Content control basics
+description: 'Insertion, manipulation and retrieval of content controls.'
+author: OfficeDev
+host: WORD
+api_set:
+    WordApi: 1.1
+script:
+    content: |-
+        $("#insert-controls").click(() => tryCatch(insertContentControls));
+        $("#change-controls").click(() => tryCatch(modifyContentControls));
+        $("#setup").click(() => tryCatch(setup));
+
+
+        async function insertContentControls() {
+            // Traverses each paragraph of the document and wraps a content control on each with either a even or odd tags
+            await Word.run(async (context) => {
+                let paragraphs = context.document.body.paragraphs;
+                paragraphs.load("$none"); //Don't need any properties, we'll just wrap each paragraph with a content control
+
+                await context.sync();
+
+                for (let i = 0; i < paragraphs.items.length; i++) {
+                    let contentControl = paragraphs.items[i].insertContentControl();
+                    // For even we tag "even"
+                    if (i % 2 === 0) {
+                        contentControl.tag = "even";
+                    }
+
+                    else {
+                        contentControl.tag = "odd";
+                    }
+                }
+                console.log("Content controls inserted: " + paragraphs.items.length)
+
+                await context.sync();
+            });
+
+        }
+
+        async function modifyContentControls() {
+            // I'll add title and colors to odd and even content controls! and change appearance of all.
+            await Word.run(async (context) => {
+                // Gets the complete sentence  (as range) associated with the insertion point.
+                let evenContentControls = context.document.contentControls.getByTag("even");
+                let oddContentControls = context.document.contentControls.getByTag("odd");
+                evenContentControls.load("color,title,appearance");
+                oddContentControls.load("color,title,appearance");
+
+                await context.sync();
+
+                for (let i = 0; i < evenContentControls.items.length; i++) {
+                    // Change a few properties and append a paragraph
+                    evenContentControls.items[i].set({
+                        color: 'red',
+                        title: 'Odd ContentControl #' + (i + 1),
+                        appearance: 'tags'
+                    });
+                    evenContentControls.items[i].insertParagraph("This is an odd content control", "end");
+                }
+
+                for (let j = 0; j < oddContentControls.items.length; j++) {
+                    // Change a few properties and append a paragraph
+                    oddContentControls.items[j].set({
+                        color: 'green',
+                        title: 'Even ContentControl #' + (j + 1),
+                        appearance: 'tags'
+                    });
+                    oddContentControls.items[j].insertHtml("This is an <b>even</b> content control", "end");
+                }
+
+                await context.sync();
+            });
+        }
+
+        async function setup() {
+            await Word.run(async (context) => {
+                // Let's insert a couple of paragraphs to illustrate the point..
+                context.document.body.clear();
+                context.document.body.insertParagraph("One more paragraph. ", "start");
+                context.document.body.insertParagraph("Inserting another paragraph. ", "start");
+                context.document.body.insertParagraph("Video provides a powerful way to help you prove your point. When you click Online Video, you can paste in the embed code for the video you want to add. You can also type a keyword to search online for the video that best fits your document.", "start");
+                context.document.body.paragraphs.getLast().insertText("To make your document look professionally produced, Word provides header, footer, cover page, and text box designs that complement each other. For example, you can add a matching cover page, header, and sidebar. Click Insert and then choose the elements you want from the different galleries. ", "replace");
+
+                await context.sync();
+            });
+        }
+
+        /** Default helper for invoking an action and handling errors. */
+        async function tryCatch(callback) {
+            try {
+                await callback();
+            }
+            catch (error) {
+                OfficeHelpers.UI.notify(error);
+                OfficeHelpers.Utilities.log(error);
+            }
+        }
+    language: typescript
+template:
+    content: |-
+        <h2 class="ms-font-m">This sample demonstrates how to insert and change content control properties. </h2>
+
+        <div id="setup-container">
+            <p class="ms-font-m">Click "setup" to reset the sample.</p>
+
+            <button id="setup" class="ms-Button">
+                    <span class="ms-Button-label">Setup</span>
+                </button>
+        </div>
+
+        <div id="samples-container">
+            <button id="insert-controls" class="ms-Button">
+                    <span class="ms-Button-label">Insert content controls on each paragraph</span>
+                </button>
+            <button id="change-controls" class="ms-Button">
+                    <span class="ms-Button-label">Modify content control appearance and content</span>
+                </button>
+        </div>
+    language: html
+style:
+    content: |
+        body {
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* Button customization, including overwriting some Fabric defaults */
+        .ms-Button, .ms-Button:focus {
+            background: #217346;
+            border: #217346;
+            height: 70px;
+        }
+
+            .ms-Button > .ms-Button-label,
+            .ms-Button:focus > .ms-Button-label,
+            .ms-Button:hover > .ms-Button-label {
+                color: white;
+            }
+
+            .ms-Button:hover, .ms-Button:active {
+                background: #164b2e;
+            }
+
+            .ms-Button.is-disabled, .ms-Button:disabled {
+                background-color: #f4f4f4;
+                border-color: #f4f4f4;
+            }
+
+            .ms-Button.is-disabled .ms-Button-label,
+            .ms-Button:disabled .ms-Button-label {
+                color: #a6a6a6;
+            }
+
+        #setup.ms-Button, #setup.ms-Button:focus {
+            background: darkred;
+            border: darkred;
+        }
+
+            #setup.ms-Button:hover, #setup.ms-Button:active {
+                background: red;
+            }
+
+        #samples-container {
+            margin-top: 20px;
+        }
+
+        #samples-container .ms-Button {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #samples-container .ms-Button, #setup-container .ms-Button {
+            margin-left: 20px;
+            min-width: 80px;
+        }
+    language: css
+libraries: |-
+    // Office.js
+    https://appsforoffice.microsoft.com/lib/1/hosted/office.js
+
+    // NPM libraries
+    jquery@3.1.1
+    office-ui-fabric-js@1.4.0/dist/js/fabric.min.js
+    office-ui-fabric-js@1.4.0/dist/css/fabric.min.css
+    office-ui-fabric-js@1.4.0/dist/css/fabric.components.min.css
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.min.js
+    core-js@2.4.1/client/core.min.js
+
+    // IntelliSense: Use dt~library_name for DefinitelyTyped or URLs to d.ts files
+    @types/office-js
+    @types/jquery
+    @types/core-js
+    @microsoft/office-js-helpers@0.7.4/dist/office.helpers.d.ts

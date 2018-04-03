@@ -1,0 +1,5 @@
+{
+  "outlook-compose-basics-get-item-subject": "https://raw.githubusercontent.com/OfficeDev/office-js-snippets/deploy-prod/samples/outlook/01-compose-basics/get-item-subject.yaml",
+  "outlook-compose-basics-get-selected-text": "https://raw.githubusercontent.com/OfficeDev/office-js-snippets/deploy-prod/samples/outlook/01-compose-basics/get-selected-text.yaml",
+  "outlook-compose-basics-set-selected-text": "https://raw.githubusercontent.com/OfficeDev/office-js-snippets/deploy-prod/samples/outlook/01-compose-basics/set-selected-text.yaml"
+}
